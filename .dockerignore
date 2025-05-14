@@ -1,0 +1,20 @@
+Dockerfile
+*.Dockerfile
+*.md
+docker-compose.yml
+.git
+.gitignore
+*.env
+.vscode
+.idea
+.DS_Store
+# build artifacts
+bin
+# GitHub action
+.github
+# traefik config
+proxy
+# golangci-lint config
+.golangci.yml
+# golangci-lint cache
+.cache
