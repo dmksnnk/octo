@@ -1,0 +1,440 @@
+openapi: 3.0.3
+info:
+  title: Octo API
+  description: API for managing bookings and availability.
+  version: 0.0.1
+paths:
+  /docs:
+    get:
+      summary: Get API documentation
+      description: Serves the API documentation rendered in HTML format.
+      responses:
+        "200":
+          description: HTML documentation.
+          content:
+            text/html:
+              schema:
+                type: string
+  /docs/openapi.yaml:
+    get:
+      summary: Get OpenAPI documentation
+      description: Serves the OpenAPI documentation in YAML format.
+      responses:
+        "200":
+          description: OpenAPI YAML file.
+          content:
+            application/yaml:
+              schema:
+                type: string
+  /-/health:
+    get:
+      summary: Health check
+      description: Returns the health status of the API.
+      responses:
+        "200":
+          description: API is healthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+  /products:
+    get:
+      summary: Get all products
+      description: Returns a list of all products.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: Capability
+          in: header
+          description: The capability to be used.
+          schema:
+            $ref: "#/components/schemas/CapabilityRequest"
+      responses:
+        "200":
+          description: A list of products.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductWithCapability"
+  /products/{id}:
+    get:
+      summary: Get a product by ID
+      description: Returns a single product by its ID.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the product to retrieve.
+          schema:
+            type: string
+        - name: Capability
+          in: header
+          required: false
+          description: The capability to be used.
+          schema:
+            $ref: "#/components/schemas/CapabilityRequest"
+      responses:
+        "200":
+          description: A single product.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductWithCapability"
+        "404":
+          description: Product not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /availability:
+    post:
+      summary: Check product availability
+      description: Checks the availability of a product for a given date or date range.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: Capability
+          in: header
+          description: The capability to be used.
+          schema:
+            $ref: "#/components/schemas/CapabilityRequest"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/AvailabilitySingleDateRequest"
+                - $ref: "#/components/schemas/AvailabilityDateRangeRequest"
+      responses:
+        "200":
+          description: Availability status.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AvailabilityWithCapability"
+        "400":
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /bookings:
+    post:
+      summary: Create a reservation.
+      description: Creates a new booking for a product.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: Capability
+          in: header
+          description: The capability to be used.
+          schema:
+            $ref: "#/components/schemas/CapabilityRequest"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingRequest"
+      responses:
+        "201":
+          description: Booking created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingWithCapability"
+        "400":
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /bookings/{id}:
+    get:
+      summary: Get a booking by ID
+      description: Returns a single booking by its ID.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the booking to retrieve.
+          schema:
+            type: string
+        - name: Capability
+          in: header
+          description: The capability to be used.
+          schema:
+            $ref: "#/components/schemas/CapabilityRequest"
+      responses:
+        "200":
+          description: A single booking.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingWithCapability"
+        "404":
+          description: Booking not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /bookings/{id}/confirm:
+    post:
+      summary: Confirm a booking.
+      description: Confirms a booking by its ID. This will generate a ticket for the booking.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the booking to confirm.
+          schema:
+            type: string
+        - name: Capability
+          in: header
+          description: The capability to be used.
+          schema:
+            $ref: "#/components/schemas/CapabilityRequest"
+      responses:
+        "200":
+          description: Booking confirmed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingWithCapability"
+        "404":
+          description: Booking not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: The status code.
+          example: 400
+        message:
+          type: string
+          description: A developer-facing error message.
+          example: "Invalid product ID"
+        details:
+          description: The error details.
+          type: array
+          items:
+            type: string
+          example: ["Product ID must be an integer"]
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the product.
+        name:
+          type: string
+          description: Name of the product.
+        capacity:
+          type: integer
+          description: Maximum number of vacancies per day (availability).
+
+    ProductWithCapability:
+      allOf:
+        - $ref: "#/components/schemas/Product"
+        - $ref: "#/components/schemas/Capability"
+
+    Availability:
+      type: object
+      required:
+        - id
+        - localDate
+        - status
+        - vacancies
+        - available
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the availability record.
+        localDate:
+          type: string
+          format: date
+          description: The date for which availability is being checked.
+        status:
+          type: string
+          enum:
+            - AVAILABLE
+            - SOLD_OUT
+          description: |
+            The availability status for the product on the given date.
+            - `AVAILABLE` This availability is available for sale.
+            - `SOLD_OUT` There are no more spots available for this date / slot.
+        vacancies:
+          nullable: true
+          example: 10
+          type: integer
+          description: The number of vacancies available to book.
+        available:
+          nullable: true
+          type: boolean
+          description: Whether there is availability for this date / slot.
+
+    AvailabilityWithCapability:
+      allOf:
+        - $ref: "#/components/schemas/Availability"
+        - $ref: "#/components/schemas/Capability"
+
+    AvailabilitySingleDateRequest:
+      type: object
+      required:
+        - productId
+        - localDate
+      properties:
+        productId:
+          type: string
+          description: The ID of the product to check.
+        localDate:
+          type: string
+          nullable: false
+          format: date
+          description: The date to check availability for.
+
+    AvailabilityDateRangeRequest:
+      type: object
+      required:
+        - productId
+        - localDateStart
+        - localDateEnd
+      properties:
+        productId:
+          type: string
+          description: The ID of the product to check.
+        localDateStart:
+          type: string
+          nullable: false
+          format: date
+          description: Start date to query for.
+        localDateEnd:
+          type: string
+          format: date
+          nullable: true
+          description: End date to query for.
+
+    Booking:
+      type: object
+      required:
+        - id
+        - status
+        - productId
+        - availabilityId
+        - units
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the booking.
+        status:
+          type: string
+          enum:
+            - RESERVED
+            - CONFIRMED
+          description: The status of the booking.
+        productId:
+          type: string
+          description: The ID of the product being booked.
+        availabilityId:
+          type: string
+          description: The ID of the availability record associated with the booking.
+        units:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnitWithCapability"
+
+    BookingWithCapability:
+      allOf:
+        - $ref: "#/components/schemas/Booking"
+        - $ref: "#/components/schemas/Capability"
+
+    Unit:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the unit.
+        ticket:
+          type: string
+          nullable: true
+          description: Ticket generated when the booking is CONFIRMED, otherwise `null`.
+
+    UnitWithCapability:
+      allOf:
+        - $ref: "#/components/schemas/Unit"
+        - $ref: "#/components/schemas/Capability"
+
+    BookingRequest:
+      type: object
+      required:
+        - productId
+        - availabilityId
+        - units
+      properties:
+        productId:
+          type: string
+          description: The ID of the product to book.
+        availabilityId:
+          type: string
+          description: The ID of the availability record.
+        units:
+          type: integer
+          description: The number of customers on this Booking.
+
+    CapabilityRequest:
+      type: string
+      description: The capability to be used.
+      enum:
+        - price
+
+    Capability:
+      description: Capability will extends the core functionality of this API.
+      # can be extened with other capabilities
+      oneOf:
+        - $ref: "#/components/schemas/CapabilityNone"
+        - $ref: "#/components/schemas/CapabilityPrice"
+
+    CapabilityNone:
+      type: object
+      description: When no capability is selected.
+
+    CapabilityPrice:
+      type: object
+      properties:
+        price:
+          type: integer
+          description: Price of a single unit in cents (e.g., 1000 represents 10.0 EUR).
+          example: 1000
+        currency:
+          type: string
+          description: Currency of the price in ISO 4217 format (e.g., EUR).
+          example: EUR
