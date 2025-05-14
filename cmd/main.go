@@ -19,10 +19,10 @@ func main() {
 	mux.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFileFS(w, r, docs.Swagger, "swagger.html")
 	})
-
 	mux.HandleFunc("/docs/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFileFS(w, r, docs.Swagger, "openapi.yaml")
 	})
+	mux.HandleFunc("/-/health", health)
 
 	srv := http.Server{
 		Addr:    ":8080",
@@ -44,4 +44,10 @@ func main() {
 	}
 
 	slog.Info("server shutdown")
+}
+
+func health(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(`{"status":"ok"}`))
 }
