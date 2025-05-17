@@ -1,0 +1,18 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "."
+    schema: "../migrations"
+    gen:
+      go:
+        package: "queries"
+        out: "../internal/storage/queries"
+        overrides:
+          - column: "bookings.status"
+            go_type: "github.com/dmksnnk/octo/internal.BookingStatus"
+    database:
+      uri: "postgres://master:mysecretpassword@localhost:1234/postgres?sslmode=disable"
+    analyzer:
+      database: false
+    rules:
+      - sqlc/db-prepare
