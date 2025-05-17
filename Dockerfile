@@ -14,7 +14,7 @@ ARG BUILD_DIR=/go/src/build
 
 COPY . .
 
-RUN GOOS=linux GOARCH=amd64 go build -v -o $BUILD_DIR/octo ./cmd/...
+RUN GOOS=linux GOARCH=amd64 go build -v -o $BUILD_DIR/octo ./cmd/api/...
 
 # certs
 
