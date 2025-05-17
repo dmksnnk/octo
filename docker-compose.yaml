@@ -1,0 +1,39 @@
+services:
+  octo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: "postgresql://master:mysecretpassword@postgres/postgres?sslmode=disable"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lab
+
+  postgres:
+    image: 'postgres:17'
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_USER: master
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U master"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - lab
+    ports:
+      - "1234:5432"
+    volumes: # persist data over restarts
+      - pgdata:/var/lib/postgresql/data
+
+networks:
+  lab:
+
+volumes:
+  pgdata:
