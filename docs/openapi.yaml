@@ -160,6 +160,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "409":
+          description: Conflict (e.g., product sold out, not enough vacancies).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /bookings/{id}:
     get:
       summary: Get a booking by ID
