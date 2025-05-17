@@ -1,7 +1,7 @@
 Dockerfile
 *.Dockerfile
 *.md
-docker-compose.yml
+docker-compose.yaml
 .git
 .gitignore
 *.env
