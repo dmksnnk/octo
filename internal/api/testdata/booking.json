@@ -1,0 +1,12 @@
+{
+    "id": "123",
+    "status": "RESERVED",
+    "productId": "1",
+    "availabilityId": "123",
+    "units": [
+        {
+            "id": "1",
+            "ticket": "ticket 1"
+        }
+    ]
+}

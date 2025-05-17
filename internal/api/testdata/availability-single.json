@@ -1,0 +1,9 @@
+[
+    {
+        "id": "123",
+        "localDate": "2025-01-20",
+        "status": "AVAILABLE",
+        "vacancies": 10,
+        "available": true
+    }
+]

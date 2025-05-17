@@ -1,0 +1,7 @@
+{
+    "code": 400,
+    "message": "invalid product ID",
+    "details": [
+        "strconv.Atoi: parsing \"abc\": invalid syntax"
+    ]
+}
